@@ -47,6 +47,9 @@ sim: $(BIN)
 run: $(BIN)
 	@$^
 
+lint:             #to check and fix all warnings
+	verilator --lint-only -Wall vsrc/top.v
+
 clean:
 	rm -rf $(BUILD_DIR)
 
