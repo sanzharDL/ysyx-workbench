@@ -1,32 +1,29 @@
 module top(
-  input [7:0] in,
-  output reg en,
-  output reg [2:0] out,
-  output reg [6:0] seg
+  input [3:0] A,
+  input [3:0] B,
+  input [2:0] sel,
+  output reg [3:0] out
 );
+  int n = 4;
+  wire [3:0] t_add_Cin;
+  wire Carry;
+  wire [3:0] Result;
+  wire Overflow;
+  wire Cin = (sel == 3'b001 || sel == 3'b110 || sel == 3'b111) ? 1'b1 : 1'b0;
+  assign t_add_Cin =( {4{Cin}}^B )+ Cin;  //  在这里请注意^运算和+运算的顺序
+  assign { Carry, Result } = A + t_add_Cin;
+  assign Overflow = (A[n-1] == t_add_Cin[n-1]) && (Result [n-1] != A[n-1]);
+
   always @(*) begin
-    casez (in)
-      8'b00000001: {en, out} = {1'b1, 3'b000};
-      8'b0000001?: {en, out} = {1'b1, 3'b001};
-      8'b000001??: {en, out} = {1'b1, 3'b010};
-      8'b00001???: {en, out} = {1'b1, 3'b011};
-      8'b0001????: {en, out} = {1'b1, 3'b100};
-      8'b001?????: {en, out} = {1'b1, 3'b101};
-      8'b01??????: {en, out} = {1'b1, 3'b110};
-      8'b1???????: {en, out} = {1'b1, 3'b111};
-      default:     {en, out} = {1'b0, 3'b000};
-    endcase
-    
-    case (out)
-      3'h0: seg = 7'b000_0001; // 0
-      3'h1: seg = 7'b100_1111; // 1
-      3'h2: seg = 7'b001_0010; // 2
-      3'h3: seg = 7'b000_0110; // 3
-      3'h4: seg = 7'b100_1100; // 4
-      3'h5: seg = 7'b010_0100; // 5 
-      3'h6: seg = 7'b010_0000; // 6
-      3'h7: seg = 7'b000_1111; // 7
-      default: seg = 7'b111_1111;
+    case (sel)
+      3'b000: out = Result;
+      3'b001: out = Result;
+      3'b010: out = A ^ {4{1'b1}};
+      3'b011: out = A & B;
+      3'b100: out = A | B;
+      3'b101: out = A ^ B;
+      3'b110: out = {3'b0, Result[3] ^ Overflow};
+      3'b111: out = {3'b0, Result == 4'd0};
     endcase
   end
 
